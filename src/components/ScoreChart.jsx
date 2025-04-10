@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { useState } from "react";
 import YearFilter from "./YearFilter";
+import MonthRangeFilter from "./MonthRangeFilter";
 
 const allData = [
   { month: "Jul 2023", score: 64.75 },
@@ -34,18 +35,32 @@ const allData = [
   { month: "Mar 2025", score: 67 },
 ];
 
+const allMonths = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 const ScoreChart = () => {
   const [filteredYear, setFilteredYear] = useState("All");
+  const [monthRange, setMonthRange] = useState({ start: "Jan", end: "Dec" });
 
-  const filteredData =
-    filteredYear === "All"
-      ? allData
-      : allData.filter((d) => d.month.includes(filteredYear));
+  const filteredData = allData
+    .filter((d) => filteredYear === "All" || d.month.includes(filteredYear))
+    .filter((d) => {
+      const [labelMonth] = d.month.split(" ");
+      const startIdx = allMonths.indexOf(monthRange.start);
+      const endIdx = allMonths.indexOf(monthRange.end);
+      const currentIdx = allMonths.indexOf(labelMonth);
+      return currentIdx >= startIdx && currentIdx <= endIdx;
+    });
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg">
       <h2 className="text-lg font-semibold mb-4">QA Score Trend</h2>
+
+      {/* Filters */}
       <YearFilter onChange={setFilteredYear} />
+      <MonthRangeFilter onChange={setMonthRange} />
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={filteredData}>
@@ -57,7 +72,7 @@ const ScoreChart = () => {
             {filteredData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.score >= 65 ? "#22c55e" : "#ef4444"}
+                fill={entry.score >= 65 ? "#22c55e" : "#ef4444"} // green or red
               />
             ))}
           </Bar>
